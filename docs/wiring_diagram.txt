@@ -1,0 +1,111 @@
+╔══════════════════════════════════════════════════════════════════════╗
+║                    DIYgitizer Wiring Diagram                        ║
+╚══════════════════════════════════════════════════════════════════════╝
+
+                         ┌─────────────────┐
+                         │   ESP32 DevKit   │
+                         │     (38-pin)     │
+                         │                  │
+                    3V3 ─┤3V3          GND├─ GND
+                         │                  │
+              I2C SDA  ──┤GPIO 21          │
+              I2C SCL  ──┤GPIO 22          │
+                         │                  │
+        Sample Button ───┤GPIO 26          │  (all buttons: N.O.
+          Mode Button ───┤GPIO 27          │   INPUT_PULLUP,
+          Foot Pedal  ───┤GPIO 25          │   press = LOW)
+                         │                  │
+                         │     USB-C        │
+                         └────────┬─────────┘
+                                  │ 115200 baud
+                                  │ to Desktop PC
+                                  │
+
+═══════════════════ I2C Bus (GPIO 21/22) ═══════════════════
+
+                    SDA ─────┬──────────────────┐
+                    SCL ─────┼──────┐           │
+                    3V3 ─────┼──────┼───┐       │
+                    GND ─────┼──────┼───┼──┐    │
+                             │      │   │  │    │
+                    ┌────────┴──────┴───┴──┴────┴──────────┐
+                    │         SSD1306 OLED (0x3C)           │
+                    │      0.96" 128×64, I2C, 4-pin        │
+                    │   Directly on main bus (NOT muxed)    │
+                    └──────────────────────────────────────┘
+
+                    SDA ─────┬──────────────────┐
+                    SCL ─────┼──────┐           │
+                    3V3 ─────┼──────┼───┐       │
+                    GND ─────┼──────┼───┼──┐    │
+                             │      │   │  │    │
+                    ┌────────┴──────┴───┴──┴────┴──────────┐
+                    │      TCA9548A I2C Mux (0x70)         │
+                    │      A0=A1=A2=GND (default addr)     │
+                    │                                       │
+                    │  CH0 ── SDA/SCL ──► AS5600 #1 (J1)   │
+                    │  CH1 ── SDA/SCL ──► AS5600 #2 (J2)   │
+                    │  CH2 ── SDA/SCL ──► AS5600 #3 (J3)   │
+                    │  CH3 ── SDA/SCL ──► AS5600 #4 (J4)   │
+                    │  CH4 ── SDA/SCL ──► AS5600 #5 (J5)   │
+                    │  CH5-CH7: unused                      │
+                    └──────────────────────────────────────┘
+
+
+═══════════════ Per-Joint Wiring (×5, same pattern) ════════════════
+
+                    TCA9548A                    AS5600 (0x36)
+                    CH(n) SDA ──── 2C shielded ───► SDA
+                    CH(n) SCL ──── cable ──────────► SCL
+                                                    DIR → GND (CW = increasing)
+                                                    OUT → float
+                                                    GPO → float
+
+                    Separate power bus (unshielded 2-wire):
+                    3V3 ─────────────────────────► VCC
+                    GND ─────────────────────────► GND
+
+
+═══════════════════ Cable Lengths (approx) ═════════════════
+
+        Joint    Mux Ch    Signal Cable    Power Cable
+        ─────    ──────    ────────────    ───────────
+         J1       CH0        ~50mm          ~50mm
+         J2       CH1       ~200mm         ~200mm
+         J3       CH2       ~400mm         ~400mm
+         J4       CH3       ~550mm         ~550mm
+         J5       CH4       ~700mm         ~700mm
+
+        Signal cables: 2-conductor SHIELDED (shield grounded at mux end ONLY)
+        Power cables:  2-conductor unshielded
+
+
+═══════════════════════ Buttons ════════════════════════════
+
+        Sample (GPIO 26) ──┤├── GND      On base plate
+        Mode   (GPIO 27) ──┤├── GND      On base plate
+        Foot   (GPIO 25) ──┤├── GND      Separate pedal, wired to base
+
+        All N.O. momentary, firmware uses INPUT_PULLUP (internal ~45kΩ)
+        Press = pin goes LOW, release = pin goes HIGH
+
+
+══════════════════════ Power Budget ════════════════════════
+
+        ESP32 3.3V regulator (500mA max)
+        ├── ESP32 core:         ~40mA
+        ├── SSD1306 OLED:        ~8mA
+        ├── TCA9548A mux:        ~1mA
+        ├── AS5600 × 5:         ~35mA  (7mA each)
+        └── Total:              ~63mA  ✓ well within budget
+
+
+══════════════════════════ Notes ═══════════════════════════
+
+• I2C clock: 400 kHz (set in firmware)
+• If long cable runs cause I2C errors, add 4.7kΩ pull-ups
+  on SDA and SCL at the mux breakout board
+• OLED is on the main I2C bus, NOT behind the mux
+  (address 0x3C doesn't conflict with mux 0x70 or AS5600 0x36)
+• AS5600 raw angle register: 0x0E (12-bit, big-endian)
+• Mux channel select: write (1 << channel) to 0x70
