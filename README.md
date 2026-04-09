@@ -4,17 +4,20 @@ A Do-It-Yourself 5-DOF digitizer arm / coordinate measuring machine for under $2
 
 <img width="989" height="1029" alt="DIYgitizer arm" src="https://github.com/user-attachments/assets/77d42ab3-a628-4343-acd0-54771ef85c89" />
 
-## What Is This?
+# So what is it?
 
-DIYgitizer is a passive (no motors) measuring arm that you move by hand. Magnetic encoders at each joint track angles, forward kinematics computes the probe tip position in 3D, and a desktop app captures the data. The goal: digitize real objects into Fusion 360 and Inventor without spending thousands on commercial equipment.
+The IYgitizer is a passive (no motors), manually-operated measuring arm. Magnetic encoders within each joint track their angles, forward kinematics computes the probe tip position in three dimensions, and a desktop app captures the data and works its various magics.
+## Why on Earth woult you make this?
 
-**Three operating modes:**
+For roughly the same reasons I did. I got tired of eyeballing dimensions on things I bought, had a drone frame I couldn't find a drawing of, and figured I could use a little project to keep myself busy. Also, I didn't feel like buying a 3D scanner, don't own an iPhone, and didn't have the cash to blow on a multi-thousant-dollar machine. I figured I could get around some accuracy issues by making adjustable drawings, instead. Now we're here.
 
-- **CMM Mode** — Capture individual points, measure distances between them, export a dimension report
-- **3D Digitizer Mode** — Scan a surface continuously, build a point cloud / mesh / parametric model, export for Fusion (PLY, STL, STEP)
-- **2D Trace Mode** — Trace an outline, auto-detect lines/arcs/circles with dimensions, export a drawing (DXF, SVG)
+**Modes of Operation**
 
-All geometry decomposes into the simplest possible primitives — lines, arcs, circles, planes, cylinders, spheres — with dimensioned offsets. No splines. Every measurement is an individual dimension you can edit in Fusion.
+- **CMM Mode** — Like any coordinate measurement machine, this mode captures individual points, measure the distances between them, and exports them for review. It's not nearly as accurate as a $35,000 stand-alone device might be, but it's also orders of magnitude cheaper, so there's that.
+- **3D Digitizer Mode** — Run the probe over a surface to scan it continuously, building a point cloud, mesh, or parametric model. Then, export to Fusion (or whatever you're using) as a PLY, STL, or STEP file.
+- **2D Trace Mode** — Trace an object's outline, auto-detecting lines, arcs, and circles, and export their dimensions as a DXF or SVG drawing.
+  
+To maximize the user's ability to compensate for measurement errors, all shapes are broken down into their most basic primitives. This means lines, arcs, circles, planes, cylinders, spheres, and the like, all with dimensioned offsets. No splines, because manually editing those when you don't know the existing dimensions is exactly the sort of headache I'm building this entire project specifically to avoid. Every measurement is an individual dimension you can edit in Fusion, or some other software of your choice.
 
 ## Hardware
 
@@ -40,13 +43,13 @@ Base Plate (clamped to desk)
 | MCU | ESP32 DevKit V1 (38-pin) |
 | Encoders | 5× AS5600 (12-bit magnetic, I2C) |
 | I2C Mux | TCA9548A (resolves shared AS5600 address) |
-| Display | 0.96" SSD1306 OLED (I2C) |
-| Buttons | Sample (GPIO 26), Mode (GPIO 27), Foot Pedal (GPIO 25) |
-| Probe | Suxing M2 ruby stylus (1mm ball, 20mm shaft) |
+| Display | 0.96" SSD1306 OLED I2C (Note: Make sure yours is square) |
+| Buttons | Sample (GPIO 26), Mode (GPIO 27), Foot Pedal Sample (GPIO 25) |
+| Probe | Suxing M2 ruby stylus (1mm ball, 20mm shaft), or similarly dimensioned probe |
 
 ### Bill of Materials
 
-All printed parts are PETG (60% infill, 4 walls). Total cost ~$150-200 depending on what you have on hand.
+All printed parts are PETG (50% infill, 4 walls) with the exception of the Base (15%) and the Base Clamp (25%). You can find an existing set of slices (albeit for an Ender 5 Pro with a MicroSwiss all-metal-hotend and direct drive setup on TH3D firmware) within the repo. Total cost of $Free.99 to $200, depending on what you have on hand.
 
 ## Software
 
@@ -96,14 +99,14 @@ PROBE_LEN   = 20mm     # J5 to ruby ball center
 
 ## Calibration
 
-Use a 1-2-3 block (25.4 × 50.8 × 76.2mm) — cheap, precise, widely available. The app's calibration wizard walks you through touching each face, then computes scale factors and joint offsets to minimize error.
+Use a 1-2-3 block (25.4 × 50.8 × 76.2mm). They're cheap, precise enough, and easy to find. The app's calibration wizard will walk you through touching each face, then compute scale factors and joint offsets to minimize error. Without precision parts, you'll want to do this *often*.
 
 ## Accuracy
 
 - AS5600: ±1° typical (12-bit)
 - Expected tip accuracy: ±1-2mm calibrated, ±3-5mm uncalibrated
 - Probe compensation: 0.5mm ball radius, applied automatically
-- This is a digitizer, not a metrology instrument — but it's plenty for making dimensioned models from physical objects
+- This is a digitizer, not a metrology instrument. It's designed to beat the Mk. 1 Eyeball, that's about it.
 
 ## Project Structure
 
