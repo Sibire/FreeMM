@@ -181,6 +181,7 @@ class MainWindow(QMainWindow):
         # Simulator panel -> simulator connection
         self._sim_panel.mode_changed.connect(self._on_sim_mode_changed)
         self._sim_panel.joint_changed.connect(self._on_sim_joint_changed)
+        self._sim_panel.speed_changed.connect(self._on_sim_speed_changed)
 
     # ------------------------------------------------------------------
     # Keyboard shortcuts
@@ -261,6 +262,11 @@ class MainWindow(QMainWindow):
         """Forward manual joint slider change to the simulator."""
         if isinstance(self._connection, SimulatorConnection):
             self._connection.set_manual_joint(joint_index, angle_deg)
+
+    def _on_sim_speed_changed(self, speed: float):
+        """Forward speed multiplier change to the simulator."""
+        if isinstance(self._connection, SimulatorConnection):
+            self._connection.set_speed(speed)
 
     def _on_reader_error(self, msg: str):
         """Handle errors from the reader thread."""

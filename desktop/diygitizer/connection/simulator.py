@@ -138,27 +138,21 @@ def _shape_circle(t, r=30, cx=150, cy=0, z=80):
     return cx + r * math.cos(a), cy + r * math.sin(a), z
 
 
-def _shape_cylinder(t, r=25, h=50, cx=120, cz=70, rows=8, pts_per_row=36):
-    """Point on a cylinder surface.  t ∈ [0,1] sweeps all rows."""
-    total = rows * pts_per_row
-    idx = int((t % 1.0) * total) % total
-    row = idx // pts_per_row
-    col = idx % pts_per_row
-    z = cz + h * row / max(rows - 1, 1)
-    a = 2 * math.pi * col / pts_per_row
+def _shape_cylinder(t, r=25, h=50, cx=120, cz=70, spirals=8):
+    """Point on a cylinder surface via smooth spiral.  t ∈ [0,1]."""
+    # Spirals up the cylinder: each full rotation advances one row height
+    z = cz + h * (t % 1.0)
+    a = 2 * math.pi * spirals * (t % 1.0)
     x = cx + r * math.cos(a)
     y = r * math.sin(a)
     return x, y, z
 
 
-def _shape_sphere(t, r=30, cx=150, cy=0, cz=80, rings=8, pts_per_ring=24):
-    """Point on a sphere surface (upper hemisphere).  t ∈ [0,1]."""
-    total = rings * pts_per_ring
-    idx = int((t % 1.0) * total) % total
-    ring = idx // pts_per_ring
-    col = idx % pts_per_ring
-    phi = math.pi / 2 * ring / max(rings - 1, 1)  # 0 (top) → π/2 (equator)
-    theta = 2 * math.pi * col / pts_per_ring
+def _shape_sphere(t, r=30, cx=150, cy=0, cz=80, spirals=8):
+    """Point on a sphere surface via smooth spiral.  t ∈ [0,1]."""
+    # Spiral from pole to equator (upper hemisphere)
+    phi = math.pi / 2 * (t % 1.0)  # 0 (top) → π/2 (equator)
+    theta = 2 * math.pi * spirals * (t % 1.0)
     x = cx + r * math.cos(phi) * math.cos(theta)
     y = cy + r * math.cos(phi) * math.sin(theta)
     z = cz + r * math.sin(phi)
@@ -298,6 +292,10 @@ class SimulatorConnection(ArmConnection):
         if 0 <= joint_index < 5:
             self._manual_angles[joint_index] = angle_deg
 
+    def set_speed(self, speed: float):
+        """Set playback speed multiplier (1.0 = normal)."""
+        self._shape_speed = max(0.1, speed)
+
     # ── Internal ──────────────────────────────────────────────────────
 
     def _current_angles(self):
@@ -307,7 +305,7 @@ class SimulatorConnection(ArmConnection):
 
         if self._mode in SHAPES and self._shape_func:
             t_elapsed = time.monotonic() - self._shape_t0
-            t_param = (t_elapsed / self._shape_duration) % 1.0
+            t_param = (t_elapsed * self._shape_speed / self._shape_duration) % 1.0
             x, y, z = self._shape_func(t_param)
             return list(_approx_ik(x, y, z))
 

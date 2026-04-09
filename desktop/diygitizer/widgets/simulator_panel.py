@@ -34,6 +34,7 @@ class SimulatorPanel(QWidget):
 
     mode_changed = pyqtSignal(str)          # mode name
     joint_changed = pyqtSignal(int, float)  # joint index, angle in degrees
+    speed_changed = pyqtSignal(float)       # speed multiplier
 
     def __init__(self, parent=None):
         super().__init__(parent)
@@ -63,6 +64,7 @@ class SimulatorPanel(QWidget):
         self._speed_spin.setValue(1.0)
         self._speed_spin.setSingleStep(0.1)
         self._speed_spin.setSuffix("x")
+        self._speed_spin.valueChanged.connect(self._on_speed_changed)
         mode_layout.addWidget(self._speed_spin)
 
         layout.addLayout(mode_layout)
@@ -139,6 +141,9 @@ class SimulatorPanel(QWidget):
         angle = raw_value / 10.0
         self._value_labels[joint_index].setText(f"{angle:.1f}°")
         self.joint_changed.emit(joint_index, angle)
+
+    def _on_speed_changed(self, value):
+        self.speed_changed.emit(value)
 
     def _zero_all(self):
         for slider in self._sliders:
