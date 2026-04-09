@@ -26,3 +26,4 @@ Thumbs.db
 # Project
 calibration_data.json
 *.log
+desktop/logs/
