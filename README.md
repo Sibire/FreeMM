@@ -6,8 +6,9 @@ A Do-It-Yourself 5-DOF digitizer arm / coordinate measuring machine for under $2
 
 # So what is it?
 
-The IYgitizer is a passive (no motors), manually-operated measuring arm. Magnetic encoders within each joint track their angles, forward kinematics computes the probe tip position in three dimensions, and a desktop app captures the data and works its various magics.
-## Why on Earth woult you make this?
+The DIYgitizer is a passive (no motors), manually-operated measuring arm. Magnetic encoders within each joint track their angles, forward kinematics computes the probe tip position in three dimensions, and a desktop app captures the data and works its various magics.
+
+## Why on Earth would you make this?
 
 For roughly the same reasons I did. I got tired of eyeballing dimensions on things I bought, had a drone frame I couldn't find a drawing of, and figured I could use a little project to keep myself busy. Also, I didn't feel like buying a 3D scanner, don't own an iPhone, and didn't have the cash to blow on a multi-thousant-dollar machine. I figured I could get around some accuracy issues by making adjustable drawings, instead. Now we're here.
 
