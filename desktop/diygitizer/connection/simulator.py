@@ -116,26 +116,26 @@ def _approx_ik(x, y, z):
 
 # ── Predefined test shapes ────────────────────────────────────────────
 
-def _shape_rectangle(t, w=60, h=40, cx=150, cz=80):
-    """Point on a rectangle outline in the XZ plane at parameter t ∈ [0,1]."""
+def _shape_rectangle(t, w=60, h=40, cx=150, cy=0, z=80):
+    """Point on a rectangle outline in the XY plane at parameter t ∈ [0,1]."""
     perim = 2 * (w + h)
     d = (t % 1.0) * perim
     if d < w:
-        return cx - w / 2 + d, 0, cz - h / 2
+        return cx - w / 2 + d, cy - h / 2, z
     d -= w
     if d < h:
-        return cx + w / 2, 0, cz - h / 2 + d
+        return cx + w / 2, cy - h / 2 + d, z
     d -= h
     if d < w:
-        return cx + w / 2 - d, 0, cz + h / 2
+        return cx + w / 2 - d, cy + h / 2, z
     d -= w
-    return cx - w / 2, 0, cz + h / 2 - d
+    return cx - w / 2, cy + h / 2 - d, z
 
 
-def _shape_circle(t, r=30, cx=150, cz=80):
-    """Point on a circle in the XZ plane at parameter t ∈ [0,1]."""
+def _shape_circle(t, r=30, cx=150, cy=0, z=80):
+    """Point on a circle in the XY plane at parameter t ∈ [0,1]."""
     a = 2 * math.pi * (t % 1.0)
-    return cx + r * math.cos(a), 0, cz + r * math.sin(a)
+    return cx + r * math.cos(a), cy + r * math.sin(a), z
 
 
 def _shape_cylinder(t, r=25, h=50, cx=120, cz=70, rows=8, pts_per_row=36):
@@ -166,10 +166,10 @@ def _shape_sphere(t, r=30, cx=150, cy=0, cz=80, rings=8, pts_per_ring=24):
 
 
 SHAPES = {
-    'rectangle': (_shape_rectangle, 'XZ', 1.0),   # (func, trace_plane, duration_sec per loop)
-    'circle':    (_shape_circle,    'XZ', 1.0),
-    'cylinder':  (_shape_cylinder,  None, 2.0),    # None = 3D, not a 2D trace
-    'sphere':    (_shape_sphere,    None, 2.0),
+    'rectangle': (_shape_rectangle, 'XY', 5.0),    # (func, trace_plane, duration_sec per loop)
+    'circle':    (_shape_circle,    'XY', 5.0),
+    'cylinder':  (_shape_cylinder,  None, 10.0),   # None = 3D, not a 2D trace
+    'sphere':    (_shape_sphere,    None, 10.0),
 }
 
 

@@ -127,8 +127,8 @@ class SimulatorPanel(QWidget):
         info_map = {
             'idle': "Arm oscillates gently. Good for checking the live readout works.",
             'manual': "Drag sliders to position the arm. Press P to capture points.",
-            'rectangle': "Traces a 60×40mm rectangle at reach ~150mm. Use 2D Trace mode to capture.",
-            'circle': "Traces a R=30mm circle at reach ~150mm. Use 2D Trace mode to capture.",
+            'rectangle': "Traces a 60×40mm rectangle in the XY plane at reach ~150mm. Use 2D Trace mode to capture.",
+            'circle': "Traces a R=30mm circle in the XY plane at reach ~150mm. Use 2D Trace mode to capture.",
             'cylinder': "Scans a R=25mm, H=50mm cylinder surface. Use 3D Digitizer mode.",
             'sphere': "Scans the upper hemisphere of a R=30mm sphere. Use 3D Digitizer mode.",
         }
