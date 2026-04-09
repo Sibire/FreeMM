@@ -38,7 +38,7 @@ class Canvas2D(QWidget):
         # Colors
         self._bg_color = QColor(32, 32, 32)
         self._grid_color = QColor(60, 60, 60)
-        self._raw_color = QColor(100, 100, 100, 120)
+        self._raw_color = QColor(50, 220, 100)
         self._feature_color = QColor(0, 200, 255)
         self._dim_color = QColor(255, 180, 0)
         self._point_color = QColor(255, 80, 80)

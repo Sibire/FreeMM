@@ -148,10 +148,10 @@ def _shape_cylinder(t, r=25, h=50, cx=120, cz=70, spirals=8):
     return x, y, z
 
 
-def _shape_sphere(t, r=30, cx=150, cy=0, cz=80, spirals=8):
-    """Point on a sphere surface via smooth spiral.  t ∈ [0,1]."""
-    # Spiral from pole to equator (upper hemisphere)
-    phi = math.pi / 2 * (t % 1.0)  # 0 (top) → π/2 (equator)
+def _shape_sphere(t, r=30, cx=150, cy=0, cz=80, spirals=12):
+    """Point on a full sphere surface via smooth spiral.  t ∈ [0,1]."""
+    # Spiral from south pole to north pole
+    phi = -math.pi / 2 + math.pi * (t % 1.0)  # -π/2 (bottom) → +π/2 (top)
     theta = 2 * math.pi * spirals * (t % 1.0)
     x = cx + r * math.cos(phi) * math.cos(theta)
     y = cy + r * math.cos(phi) * math.sin(theta)
@@ -159,11 +159,61 @@ def _shape_sphere(t, r=30, cx=150, cy=0, cz=80, spirals=8):
     return x, y, z
 
 
+def _shape_box(t, w=50, d=30, h=40, cx=150, cy=0, cz=70, rows=6):
+    """Point on a rectangular box surface via horizontal slice spirals.
+
+    Each row is a horizontal rectangle at a given height.  The probe
+    traces the rectangle perimeter, then steps up to the next row.
+    t ∈ [0,1] sweeps all rows.
+    """
+    perim = 2 * (w + d)
+    row_frac = 1.0 / rows
+    row = int((t % 1.0) / row_frac) % rows
+    local_t = ((t % 1.0) - row * row_frac) / row_frac  # 0-1 within this row
+
+    z = cz + h * row / max(rows - 1, 1)
+    dist = (local_t % 1.0) * perim
+
+    if dist < w:
+        x = cx - w / 2 + dist
+        y = cy - d / 2
+    elif dist < w + d:
+        x = cx + w / 2
+        y = cy - d / 2 + (dist - w)
+    elif dist < 2 * w + d:
+        x = cx + w / 2 - (dist - w - d)
+        y = cy + d / 2
+    else:
+        x = cx - w / 2
+        y = cy + d / 2 - (dist - 2 * w - d)
+    return x, y, z
+
+
+def _shape_star(t, r_outer=35, r_inner=15, points=5, cx=150, cy=0, z=80):
+    """Point on a 5-pointed star outline in the XY plane.  t ∈ [0,1]."""
+    # Star has 2*points vertices alternating outer/inner
+    n_verts = 2 * points
+    seg = (t % 1.0) * n_verts
+    idx = int(seg) % n_verts
+    frac = seg - int(seg)
+
+    def _star_vertex(i):
+        angle = math.pi / 2 + 2 * math.pi * i / n_verts  # start at top
+        r = r_outer if i % 2 == 0 else r_inner
+        return cx + r * math.cos(angle), cy + r * math.sin(angle)
+
+    x0, y0 = _star_vertex(idx)
+    x1, y1 = _star_vertex((idx + 1) % n_verts)
+    return x0 + frac * (x1 - x0), y0 + frac * (y1 - y0), z
+
+
 SHAPES = {
     'rectangle': (_shape_rectangle, 'XY', 5.0),    # (func, trace_plane, duration_sec per loop)
     'circle':    (_shape_circle,    'XY', 5.0),
+    'star':      (_shape_star,      'XY', 5.0),
     'cylinder':  (_shape_cylinder,  None, 10.0),   # None = 3D, not a 2D trace
-    'sphere':    (_shape_sphere,    None, 10.0),
+    'box':       (_shape_box,       None, 12.0),
+    'sphere':    (_shape_sphere,    None, 12.0),
 }
 
 

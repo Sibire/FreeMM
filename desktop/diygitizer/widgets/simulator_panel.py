@@ -22,10 +22,12 @@ JOINT_LIMITS = [
 SHAPES = [
     ("Idle (gentle oscillation)", "idle"),
     ("Manual (sliders)", "manual"),
-    ("Rectangle (2D trace test)", "rectangle"),
-    ("Circle (2D trace test)", "circle"),
-    ("Cylinder (3D scan test)", "cylinder"),
-    ("Sphere (3D scan test)", "sphere"),
+    ("Rectangle (2D trace)", "rectangle"),
+    ("Circle (2D trace)", "circle"),
+    ("Star (2D trace)", "star"),
+    ("Cylinder (3D scan)", "cylinder"),
+    ("Box (3D scan)", "box"),
+    ("Sphere (3D scan)", "sphere"),
 ]
 
 
@@ -129,8 +131,10 @@ class SimulatorPanel(QWidget):
         info_map = {
             'idle': "Arm oscillates gently. Good for checking the live readout works.",
             'manual': "Drag sliders to position the arm. Press P to capture points.",
-            'rectangle': "Traces a 60×40mm rectangle in the XY plane at reach ~150mm. Use 2D Trace mode to capture.",
-            'circle': "Traces a R=30mm circle in the XY plane at reach ~150mm. Use 2D Trace mode to capture.",
+            'rectangle': "Traces a 60×40mm rectangle in the XY plane. Use 2D Trace mode to capture.",
+            'circle': "Traces a R=30mm circle in the XY plane. Use 2D Trace mode to capture.",
+            'star': "Traces a 5-pointed star in the XY plane. Use 2D Trace mode to capture.",
+            'box': "Scans a 50×30×40mm rectangular box surface. Use 3D Digitizer mode.",
             'cylinder': "Scans a R=25mm, H=50mm cylinder surface. Use 3D Digitizer mode.",
             'sphere': "Scans the upper hemisphere of a R=30mm sphere. Use 3D Digitizer mode.",
         }
