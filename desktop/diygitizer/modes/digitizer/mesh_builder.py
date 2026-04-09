@@ -20,19 +20,23 @@ def _check_open3d():
     return _open3d_available
 
 
-def build_mesh(points, method='poisson', depth=8, ball_radius_factor=2.0):
+def build_mesh(points, method='ball_pivoting', depth=8, density_threshold=0.1):
     """Build a triangle mesh from a point cloud.
 
     Args:
         points: Nx3 numpy array
-        method: 'poisson' or 'ball_pivoting'
+        method: 'poisson' or 'ball_pivoting' (default: ball_pivoting)
         depth: octree depth for Poisson (higher = more detail)
-        ball_radius_factor: ball radius multiplier for BPA
+        density_threshold: percentile threshold for Poisson density
+            trimming (0.0-1.0). Lower = more aggressive trimming.
 
     Returns:
         (vertices, faces) tuple of numpy arrays
         vertices: Mx3, faces: Kx3 (triangle indices)
     """
+    if len(points) < 4:
+        return np.empty((0, 3)), np.empty((0, 3), dtype=int)
+
     if not _check_open3d():
         return _fallback_mesh(points)
 
@@ -42,30 +46,38 @@ def build_mesh(points, method='poisson', depth=8, ball_radius_factor=2.0):
     pcd = o3d.geometry.PointCloud()
     pcd.points = o3d.utility.Vector3dVector(points)
 
-    # Estimate normals
+    # Estimate normals — radius scaled to point cloud extent
+    extent = np.ptp(points, axis=0).max()  # largest dimension
+    search_radius = max(extent * 0.05, 2.0)  # 5% of extent, min 2mm
     pcd.estimate_normals(
-        search_param=o3d.geometry.KDTreeSearchParamHybrid(radius=10.0, max_nn=30)
+        search_param=o3d.geometry.KDTreeSearchParamHybrid(
+            radius=search_radius, max_nn=30
+        )
     )
     pcd.orient_normals_consistent_tangent_plane(k=15)
 
     # Remove outliers
     pcd, _ = pcd.remove_statistical_outlier(nb_neighbors=20, std_ratio=2.0)
 
+    if len(pcd.points) < 4:
+        return np.empty((0, 3)), np.empty((0, 3), dtype=int)
+
     if method == 'poisson':
         mesh, densities = o3d.geometry.TriangleMesh.create_from_point_cloud_poisson(
             pcd, depth=depth
         )
 
-        # Crop to bounding box of original points (Poisson creates extra surface)
-        bbox = pcd.get_axis_aligned_bounding_box()
-        bbox = bbox.scale(1.1, bbox.get_center())  # slight margin
-        mesh = mesh.crop(bbox)
+        # Density-based trimming: remove low-density faces that Poisson
+        # "invented" to close the surface.  These have no nearby points.
+        densities = np.asarray(densities)
+        threshold = np.quantile(densities, density_threshold)
+        vertices_to_remove = densities < threshold
+        mesh.remove_vertices_by_mask(vertices_to_remove)
 
     elif method == 'ball_pivoting':
         distances = pcd.compute_nearest_neighbor_distance()
         avg_dist = np.mean(distances)
-        radii = [avg_dist * ball_radius_factor,
-                 avg_dist * ball_radius_factor * 2]
+        radii = [avg_dist * 1.5, avg_dist * 3.0, avg_dist * 6.0]
         radii = o3d.utility.DoubleVector(radii)
         mesh = o3d.geometry.TriangleMesh.create_from_point_cloud_ball_pivoting(
             pcd, radii
@@ -77,10 +89,14 @@ def build_mesh(points, method='poisson', depth=8, ball_radius_factor=2.0):
     mesh.remove_degenerate_triangles()
     mesh.remove_duplicated_triangles()
     mesh.remove_duplicated_vertices()
+    mesh.remove_unreferenced_vertices()
     mesh.compute_vertex_normals()
 
     vertices = np.asarray(mesh.vertices)
     faces = np.asarray(mesh.triangles)
+
+    if len(faces) == 0:
+        return _fallback_mesh(points)
 
     return vertices, faces
 

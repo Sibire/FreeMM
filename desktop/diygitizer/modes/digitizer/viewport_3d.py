@@ -29,7 +29,7 @@ class Viewport3D(QOpenGLWidget):
         # Camera (spherical coordinates)
         self._cam_theta = 45.0    # horizontal angle (degrees)
         self._cam_phi = 30.0      # vertical angle (degrees)
-        self._cam_dist = 400.0    # distance from look-at point
+        self._cam_dist = 1200.0   # distance from look-at point
         self._look_at = [0.0, 0.0, 50.0]  # look-at point
 
         # Mouse interaction
@@ -162,9 +162,10 @@ class Viewport3D(QOpenGLWidget):
 
     def _draw_grid(self):
         glBegin(GL_LINES)
-        glColor4f(0.3, 0.3, 0.3, 0.5)
-        size = 200
-        step = 20
+        # Major grid at 100mm, covers full arm reach (~800mm radius)
+        size = 800
+        step = 100
+        glColor4f(0.25, 0.25, 0.25, 0.4)
         for i in range(-size, size + 1, step):
             glVertex3f(i, -size, 0)
             glVertex3f(i, size, 0)
@@ -178,15 +179,15 @@ class Viewport3D(QOpenGLWidget):
         # X = red
         glColor3f(0.8, 0.2, 0.2)
         glVertex3f(0, 0, 0)
-        glVertex3f(50, 0, 0)
+        glVertex3f(200, 0, 0)
         # Y = green
         glColor3f(0.2, 0.8, 0.2)
         glVertex3f(0, 0, 0)
-        glVertex3f(0, 50, 0)
+        glVertex3f(0, 200, 0)
         # Z = blue
         glColor3f(0.2, 0.2, 0.8)
         glVertex3f(0, 0, 0)
-        glVertex3f(0, 0, 50)
+        glVertex3f(0, 0, 200)
         glEnd()
         glLineWidth(1)
 
