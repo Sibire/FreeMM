@@ -91,7 +91,7 @@ Streams `ANGLES,j1,j2,j3,j4,j5` at ~200Hz over USB serial (115200 baud). Respond
 The forward kinematics uses center-to-center joint distances. These are defined in `firmware/src/config.h` and `desktop/diygitizer/config.py`:
 
 ```
-BASE_HEIGHT = 38mm      # base plate surface to J2 axis
+BASE_HEIGHT = 71mm      # base plate surface to J2 axis
 UPPER_ARM   = 330.1mm   # J2 to J3
 FOREARM     = 330.1mm   # J3 to J4
 WRIST_LINK  = 36mm      # J4 to J5

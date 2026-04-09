@@ -3,7 +3,7 @@
 # ---------------------------------------------------------------------------
 # Link lengths (mm) — must match firmware / Fusion assembly
 # ---------------------------------------------------------------------------
-BASE_HEIGHT = 38.0
+BASE_HEIGHT = 71.0
 UPPER_ARM = 330.1
 FOREARM = 330.1
 WRIST_LINK = 36.0

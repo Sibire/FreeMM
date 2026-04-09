@@ -23,7 +23,7 @@
 #define SCREEN_HEIGHT  64
 
 // --- Link Lengths (mm) — measured from Fusion assembly ---
-#define BASE_HEIGHT    38.0f
+#define BASE_HEIGHT    71.0f
 #define UPPER_ARM     330.1f
 #define FOREARM       330.1f
 #define WRIST_LINK     36.0f
