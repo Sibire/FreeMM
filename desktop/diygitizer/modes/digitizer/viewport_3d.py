@@ -225,11 +225,13 @@ class Viewport3D(QOpenGLWidget):
         glBegin(GL_POINTS)
 
         n = len(self._point_cloud)
+        z_col = self._point_cloud[:, 2]
+        z_min = z_col.min()
+        z_range = max(z_col.max() - z_min, 1)
         for i in range(n):
             x, y, z = self._point_cloud[i]
             # Color by height
-            t = (z - self._point_cloud[:, 2].min()) / max(
-                self._point_cloud[:, 2].ptp(), 1)
+            t = (z - z_min) / z_range
             glColor3f(0.2 + 0.8 * t, 0.5, 1.0 - 0.8 * t)
             glVertex3f(x, y, z)
 
