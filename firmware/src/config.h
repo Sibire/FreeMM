@@ -22,12 +22,12 @@
 #define SCREEN_WIDTH   128
 #define SCREEN_HEIGHT  64
 
-// --- Link Lengths (mm) — PLACEHOLDER values, measure from actual arm ---
-#define BASE_HEIGHT    50.0f
-#define UPPER_ARM     150.0f
-#define FOREARM       130.0f
-#define WRIST_LINK     30.0f
-#define PROBE_LEN      20.0f
+// --- Link Lengths (mm) — measured from Fusion assembly ---
+#define BASE_HEIGHT    38.0f
+#define UPPER_ARM     330.1f
+#define FOREARM       330.1f
+#define WRIST_LINK     36.0f
+#define PROBE_LEN      77.3f
 #define BALL_RADIUS     0.5f
 
 // --- Joint Count ---

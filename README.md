@@ -88,14 +88,14 @@ Streams `ANGLES,j1,j2,j3,j4,j5` at ~200Hz over USB serial (115200 baud). Respond
 
 ### Link Lengths
 
-The forward kinematics uses center-to-center joint distances. **These are placeholders** — measure your actual assembly in Fusion and update `firmware/src/config.h` and `desktop/diygitizer/config.py`:
+The forward kinematics uses center-to-center joint distances. These are defined in `firmware/src/config.h` and `desktop/diygitizer/config.py`:
 
 ```
-BASE_HEIGHT = 50mm     # base plate surface to J2 axis
-UPPER_ARM   = 150mm    # J2 to J3
-FOREARM     = 130mm    # J3 to J4
-WRIST_LINK  = 30mm     # J4 to J5
-PROBE_LEN   = 20mm     # J5 to ruby ball center
+BASE_HEIGHT = 38mm      # base plate surface to J2 axis
+UPPER_ARM   = 330.1mm   # J2 to J3
+FOREARM     = 330.1mm   # J3 to J4
+WRIST_LINK  = 36mm      # J4 to J5
+PROBE_LEN   = 77.3mm    # J5 to ruby ball center
 ```
 
 ## Calibration

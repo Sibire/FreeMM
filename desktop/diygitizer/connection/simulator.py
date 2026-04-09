@@ -116,7 +116,7 @@ def _approx_ik(x, y, z):
 
 # ── Predefined test shapes ────────────────────────────────────────────
 
-def _shape_rectangle(t, w=60, h=40, cx=150, cy=0, z=80):
+def _shape_rectangle(t, w=60, h=40, cx=400, cy=0, z=200):
     """Point on a rectangle outline in the XY plane at parameter t ∈ [0,1]."""
     perim = 2 * (w + h)
     d = (t % 1.0) * perim
@@ -132,13 +132,13 @@ def _shape_rectangle(t, w=60, h=40, cx=150, cy=0, z=80):
     return cx - w / 2, cy + h / 2 - d, z
 
 
-def _shape_circle(t, r=30, cx=150, cy=0, z=80):
+def _shape_circle(t, r=30, cx=400, cy=0, z=200):
     """Point on a circle in the XY plane at parameter t ∈ [0,1]."""
     a = 2 * math.pi * (t % 1.0)
     return cx + r * math.cos(a), cy + r * math.sin(a), z
 
 
-def _shape_cylinder(t, r=25, h=50, cx=120, cz=70, spirals=8):
+def _shape_cylinder(t, r=25, h=50, cx=400, cz=170, spirals=8):
     """Point on a cylinder surface via smooth spiral.  t ∈ [0,1]."""
     # Spirals up the cylinder: each full rotation advances one row height
     z = cz + h * (t % 1.0)
@@ -148,7 +148,7 @@ def _shape_cylinder(t, r=25, h=50, cx=120, cz=70, spirals=8):
     return x, y, z
 
 
-def _shape_sphere(t, r=30, cx=150, cy=0, cz=80, spirals=12):
+def _shape_sphere(t, r=30, cx=400, cy=0, cz=200, spirals=12):
     """Point on a full sphere surface via smooth spiral.  t ∈ [0,1]."""
     # Spiral from south pole to north pole
     phi = -math.pi / 2 + math.pi * (t % 1.0)  # -π/2 (bottom) → +π/2 (top)
@@ -159,7 +159,7 @@ def _shape_sphere(t, r=30, cx=150, cy=0, cz=80, spirals=12):
     return x, y, z
 
 
-def _shape_box(t, w=50, d=30, h=40, cx=150, cy=0, cz=70, rows=6):
+def _shape_box(t, w=50, d=30, h=40, cx=400, cy=0, cz=170, rows=6):
     """Point on a rectangular box surface via horizontal slice spirals.
 
     Each row is a horizontal rectangle at a given height.  The probe
@@ -189,7 +189,7 @@ def _shape_box(t, w=50, d=30, h=40, cx=150, cy=0, cz=70, rows=6):
     return x, y, z
 
 
-def _shape_star(t, r_outer=35, r_inner=15, points=5, cx=150, cy=0, z=80):
+def _shape_star(t, r_outer=35, r_inner=15, points=5, cx=400, cy=0, z=200):
     """Point on a 5-pointed star outline in the XY plane.  t ∈ [0,1]."""
     # Star has 2*points vertices alternating outer/inner
     n_verts = 2 * points
