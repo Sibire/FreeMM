@@ -1,9 +1,13 @@
 """Built-in simulator connection — no hardware required.
 
-The simulator maintains five virtual joint angles that smoothly oscillate
-at different frequencies, producing realistic-looking arm motion.  It
-speaks the same line-based protocol as the real firmware so the rest of
-the application does not need to know the difference.
+Three simulator modes:
+  - MANUAL: Joint angles controlled by sliders in the UI. Arm stays put.
+  - IDLE: Gentle sine-wave oscillation (default on connect, for demo).
+  - SHAPE: Traces a predefined test shape (rectangle, circle, cylinder,
+    sphere) by computing probe-tip positions along the shape surface
+    and approximate IK to produce realistic joint angles.
+
+Speaks the same line-based protocol as the real firmware.
 """
 
 import math
@@ -19,154 +23,244 @@ from diygitizer.config import (
 )
 from diygitizer.connection.base import ArmConnection
 
+# ── Forward kinematics (mirrors firmware) ──────────────────────────────
 
 def _sim_fk(j1d, j2d, j3d, j4d, j5d):
-    """Lightweight FK using only the math module (mirrors firmware)."""
+    """Lightweight FK using only the math module."""
     j1 = math.radians(j1d)
     j2 = math.radians(j2d)
     j3 = math.radians(j3d)
     j4 = math.radians(j4d)
     j5 = math.radians(j5d)
 
-    c1 = math.cos(j1)
-    s1 = math.sin(j1)
+    c1, s1 = math.cos(j1), math.sin(j1)
 
-    elbow_x = UPPER_ARM * math.cos(j2) * c1
-    elbow_y = UPPER_ARM * math.cos(j2) * s1
-    elbow_z = BASE_HEIGHT + UPPER_ARM * math.sin(j2)
+    ex = UPPER_ARM * math.cos(j2) * c1
+    ey = UPPER_ARM * math.cos(j2) * s1
+    ez = BASE_HEIGHT + UPPER_ARM * math.sin(j2)
 
-    pitch23 = j2 + j3
-    wrist_x = elbow_x + FOREARM * math.cos(pitch23) * c1
-    wrist_y = elbow_y + FOREARM * math.cos(pitch23) * s1
-    wrist_z = elbow_z + FOREARM * math.sin(pitch23)
+    p23 = j2 + j3
+    wx = ex + FOREARM * math.cos(p23) * c1
+    wy = ey + FOREARM * math.cos(p23) * s1
+    wz = ez + FOREARM * math.sin(p23)
 
-    pitch234 = pitch23 + j4
-    cp234 = math.cos(pitch234)
-    sp234 = math.sin(pitch234)
-    j5x = wrist_x + WRIST_LINK * cp234 * c1
-    j5y = wrist_y + WRIST_LINK * cp234 * s1
-    j5z = wrist_z + WRIST_LINK * sp234
+    p234 = p23 + j4
+    cp, sp = math.cos(p234), math.sin(p234)
+    jx = wx + WRIST_LINK * cp * c1
+    jy = wy + WRIST_LINK * cp * s1
+    jz = wz + WRIST_LINK * sp
 
-    fwd_x = cp234 * c1
-    fwd_y = cp234 * s1
-    fwd_z = sp234
+    fx, fy, fz = cp * c1, cp * s1, sp
+    lx, ly = -s1, c1
 
-    lat_x = -s1
-    lat_y = c1
-    lat_z = 0.0
+    c5, s5 = math.cos(j5), math.sin(j5)
+    dx = c5 * fx + s5 * lx
+    dy = c5 * fy + s5 * ly
+    dz = c5 * fz
 
-    c5 = math.cos(j5)
-    s5 = math.sin(j5)
+    return jx + PROBE_LEN * dx, jy + PROBE_LEN * dy, jz + PROBE_LEN * dz
 
-    pd_x = c5 * fwd_x + s5 * lat_x
-    pd_y = c5 * fwd_y + s5 * lat_y
-    pd_z = c5 * fwd_z + s5 * lat_z
 
-    tip_x = j5x + PROBE_LEN * pd_x
-    tip_y = j5y + PROBE_LEN * pd_y
-    tip_z = j5z + PROBE_LEN * pd_z
+# ── Approximate inverse kinematics ────────────────────────────────────
 
-    return tip_x, tip_y, tip_z
+_TOOL = WRIST_LINK + PROBE_LEN   # tool length beyond forearm
 
+def _approx_ik(x, y, z):
+    """Compute approximate joint angles (degrees) to reach (x, y, z).
+
+    Returns (j1, j2, j3, j4, j5) in degrees.  J5 is always 0.
+
+    Strategy: choose J4 so the tool (wrist link + probe) points
+    horizontally.  That means pitch234 = 0, so the tool extends
+    radially outward from the base axis.  Then solve 2-link IK
+    (upper arm, forearm) to place the wrist at the right spot.
+    """
+    # J1: base yaw
+    j1_rad = math.atan2(y, x) if (abs(x) + abs(y)) > 0.01 else 0.0
+
+    # Work in the arm plane: radial distance from Z axis, height
+    target_r = math.sqrt(x * x + y * y)
+    target_z = z
+
+    # With pitch234 = 0 the tool extends horizontally, so the wrist is:
+    wrist_r = target_r - _TOOL
+    wrist_z = target_z
+
+    # 2-link IK from shoulder (0, BASE_HEIGHT) to wrist (wrist_r, wrist_z)
+    dr = wrist_r          # horizontal offset from axis
+    dz = wrist_z - BASE_HEIGHT   # vertical offset from shoulder
+
+    d = math.sqrt(dr * dr + dz * dz)
+    max_reach = UPPER_ARM + FOREARM - 1
+    min_reach = abs(UPPER_ARM - FOREARM) + 1
+    d = max(min_reach, min(d, max_reach))
+
+    # Elbow angle via law of cosines
+    cos_j3 = (d * d - UPPER_ARM * UPPER_ARM - FOREARM * FOREARM) / \
+             (2 * UPPER_ARM * FOREARM)
+    cos_j3 = max(-1.0, min(1.0, cos_j3))
+    j3_rad = -math.acos(cos_j3)  # negative = elbow-down (more natural pose)
+
+    # Shoulder angle
+    alpha = math.atan2(dz, dr)
+    beta = math.atan2(FOREARM * math.sin(-j3_rad),
+                      UPPER_ARM + FOREARM * math.cos(-j3_rad))
+    j2_rad = alpha + beta
+
+    # J4: pitch234 = j2 + j3 + j4 = 0  →  j4 = -(j2 + j3)
+    j4_rad = -(j2_rad + j3_rad)
+
+    return (math.degrees(j1_rad), math.degrees(j2_rad),
+            math.degrees(j3_rad), math.degrees(j4_rad), 0.0)
+
+
+# ── Predefined test shapes ────────────────────────────────────────────
+
+def _shape_rectangle(t, w=60, h=40, cx=150, cz=80):
+    """Point on a rectangle outline in the XZ plane at parameter t ∈ [0,1]."""
+    perim = 2 * (w + h)
+    d = (t % 1.0) * perim
+    if d < w:
+        return cx - w / 2 + d, 0, cz - h / 2
+    d -= w
+    if d < h:
+        return cx + w / 2, 0, cz - h / 2 + d
+    d -= h
+    if d < w:
+        return cx + w / 2 - d, 0, cz + h / 2
+    d -= w
+    return cx - w / 2, 0, cz + h / 2 - d
+
+
+def _shape_circle(t, r=30, cx=150, cz=80):
+    """Point on a circle in the XZ plane at parameter t ∈ [0,1]."""
+    a = 2 * math.pi * (t % 1.0)
+    return cx + r * math.cos(a), 0, cz + r * math.sin(a)
+
+
+def _shape_cylinder(t, r=25, h=50, cx=120, cz=70, rows=8, pts_per_row=36):
+    """Point on a cylinder surface.  t ∈ [0,1] sweeps all rows."""
+    total = rows * pts_per_row
+    idx = int((t % 1.0) * total) % total
+    row = idx // pts_per_row
+    col = idx % pts_per_row
+    z = cz + h * row / max(rows - 1, 1)
+    a = 2 * math.pi * col / pts_per_row
+    x = cx + r * math.cos(a)
+    y = r * math.sin(a)
+    return x, y, z
+
+
+def _shape_sphere(t, r=30, cx=150, cy=0, cz=80, rings=8, pts_per_ring=24):
+    """Point on a sphere surface (upper hemisphere).  t ∈ [0,1]."""
+    total = rings * pts_per_ring
+    idx = int((t % 1.0) * total) % total
+    ring = idx // pts_per_ring
+    col = idx % pts_per_ring
+    phi = math.pi / 2 * ring / max(rings - 1, 1)  # 0 (top) → π/2 (equator)
+    theta = 2 * math.pi * col / pts_per_ring
+    x = cx + r * math.cos(phi) * math.cos(theta)
+    y = cy + r * math.cos(phi) * math.sin(theta)
+    z = cz + r * math.sin(phi)
+    return x, y, z
+
+
+SHAPES = {
+    'rectangle': (_shape_rectangle, 'XZ', 1.0),   # (func, trace_plane, duration_sec per loop)
+    'circle':    (_shape_circle,    'XZ', 1.0),
+    'cylinder':  (_shape_cylinder,  None, 2.0),    # None = 3D, not a 2D trace
+    'sphere':    (_shape_sphere,    None, 2.0),
+}
+
+
+# ── Simulator connection ──────────────────────────────────────────────
 
 class SimulatorConnection(ArmConnection):
-    """Simulated arm connection that oscillates joints automatically.
+    """Simulated arm connection with three modes.
 
-    The simulator produces ``ANGLES,j1,j2,j3,j4,j5`` lines at ~50 Hz.
-    It responds to single-character commands:
-        ``p`` — sample a point (next readline returns a ``POINT`` line)
-        ``t`` — toggle trace mode (intersperse ``TRACE`` lines with angles)
+    Modes (set via ``set_mode``):
+      - ``"idle"``  — gentle sine-wave oscillation (default)
+      - ``"manual"`` — joints set by ``set_manual_angles``
+      - ``"rectangle"`` / ``"circle"`` / ``"cylinder"`` / ``"sphere"``
+        — trace a predefined test shape
     """
 
-    # Oscillation parameters: (amplitude_deg, frequency_hz, phase_offset)
-    _OSCILLATION = [
-        (45.0, 0.13, 0.0),    # J1 — slow base sweep
-        (30.0, 0.17, 1.0),    # J2 — shoulder
-        (25.0, 0.23, 2.0),    # J3 — elbow
-        (20.0, 0.31, 3.0),    # J4 — wrist pitch
-        (15.0, 0.11, 0.5),    # J5 — wrist roll
+    _IDLE_OSC = [
+        (20.0, 0.08, 0.0),   # J1 — slow gentle sweep
+        (15.0, 0.06, 1.0),   # J2
+        (10.0, 0.05, 2.0),   # J3
+        (8.0,  0.07, 3.0),   # J4
+        (5.0,  0.04, 0.5),   # J5
     ]
 
     def __init__(self):
         self._open = False
         self._t0 = 0.0
-
-        # Pending lines queue (thread-safe via lock)
         self._lock = threading.Lock()
         self._queue: list[str] = []
 
-        # Point sampling state
-        self._point_index = 0
+        # Mode
+        self._mode = 'idle'
+        self._manual_angles = [0.0, 0.0, 0.0, 0.0, 0.0]
 
-        # Trace state
+        # Shape playback
+        self._shape_func = None
+        self._shape_plane = None
+        self._shape_duration = 1.0
+        self._shape_t0 = 0.0
+        self._shape_speed = 1.0  # loops per duration
+
+        # Point/trace state
+        self._point_index = 0
         self._tracing = False
         self._trace_index = 0
         self._trace_plane = "XY"
 
-    # ------------------------------------------------------------------
-    # ArmConnection interface
-    # ------------------------------------------------------------------
+    # ── ArmConnection interface ───────────────────────────────────────
 
-    def open(self) -> None:
+    def open(self):
         self._open = True
         self._t0 = time.monotonic()
+        self._shape_t0 = self._t0
         with self._lock:
             self._queue.append("# Simulator connected")
 
-    def close(self) -> None:
+    def close(self):
         self._open = False
         self._tracing = False
 
-    def is_open(self) -> bool:
+    def is_open(self):
         return self._open
 
-    def write(self, cmd: str) -> None:
-        """Handle single-character commands, mirroring firmware protocol."""
+    def write(self, cmd: str):
         cmd = cmd.strip()
         if not cmd:
             return
-
         c = cmd[0]
-        if c == "p":
+        if c == 'p':
             self._sample_point()
-        elif c == "t":
+        elif c == 't':
             self._toggle_trace()
 
-    def readline(self) -> str:
-        """Return the next protocol line at ~50 Hz.
-
-        If there are pending command-response lines they are returned
-        first.  Otherwise an ``ANGLES`` line is generated from the
-        current simulated joint state.  When tracing is active, a
-        ``TRACE`` line is emitted alongside each ``ANGLES`` line.
-        """
+    def readline(self):
         if not self._open:
             return ""
 
-        # ~50 Hz pacing
-        time.sleep(0.02)
+        time.sleep(0.02)  # ~50 Hz
 
-        # Return any pending lines first (point samples, status messages)
         with self._lock:
             if self._queue:
                 return self._queue.pop(0)
 
-        # Compute oscillating joint angles
-        t = time.monotonic() - self._t0
-        angles = []
-        for amp, freq, phase in self._OSCILLATION:
-            angles.append(amp * math.sin(2.0 * math.pi * freq * t + phase))
-
+        # Get current joint angles depending on mode
+        angles = self._current_angles()
         j1d, j2d, j3d, j4d, j5d = angles
 
-        # Build ANGLES line (degrees, 2 decimal places)
-        line = "ANGLES,{:.2f},{:.2f},{:.2f},{:.2f},{:.2f}".format(
-            j1d, j2d, j3d, j4d, j5d
-        )
+        line = "ANGLES,{:.2f},{:.2f},{:.2f},{:.2f},{:.2f}".format(*angles)
 
-        # If tracing, also queue a TRACE line for the next read
+        # If tracing, queue a TRACE line
         if self._tracing:
-            tx, ty, tz = _sim_fk(j1d, j2d, j3d, j4d, j5d)
+            tx, ty, tz = _sim_fk(*angles)
             a, b = self._project(tx, ty, tz)
             trace_line = "TRACE,{},{:.4f},{:.4f}".format(self._trace_index, a, b)
             self._trace_index += 1
@@ -175,31 +269,64 @@ class SimulatorConnection(ArmConnection):
 
         return line
 
-    # ------------------------------------------------------------------
-    # Internal helpers
-    # ------------------------------------------------------------------
+    # ── Mode control (called from UI) ─────────────────────────────────
+
+    def set_mode(self, mode: str):
+        """Switch simulator mode.
+
+        Args:
+            mode: 'idle', 'manual', 'rectangle', 'circle', 'cylinder', 'sphere'
+        """
+        self._mode = mode
+        if mode in SHAPES:
+            func, plane, dur = SHAPES[mode]
+            self._shape_func = func
+            self._shape_plane = plane
+            self._shape_duration = dur
+            self._shape_t0 = time.monotonic()
+            if plane:
+                self._trace_plane = plane
+        else:
+            self._shape_func = None
+
+    def set_manual_angles(self, angles: list):
+        """Set joint angles for manual mode (degrees)."""
+        self._manual_angles = list(angles)
+
+    def set_manual_joint(self, joint_index: int, angle_deg: float):
+        """Set a single joint angle for manual mode."""
+        if 0 <= joint_index < 5:
+            self._manual_angles[joint_index] = angle_deg
+
+    # ── Internal ──────────────────────────────────────────────────────
 
     def _current_angles(self):
-        """Return the current simulated joint angles in degrees."""
+        """Return joint angles (degrees) for current mode."""
+        if self._mode == 'manual':
+            return list(self._manual_angles)
+
+        if self._mode in SHAPES and self._shape_func:
+            t_elapsed = time.monotonic() - self._shape_t0
+            t_param = (t_elapsed / self._shape_duration) % 1.0
+            x, y, z = self._shape_func(t_param)
+            return list(_approx_ik(x, y, z))
+
+        # idle mode: gentle oscillation
         t = time.monotonic() - self._t0
         angles = []
-        for amp, freq, phase in self._OSCILLATION:
+        for amp, freq, phase in self._IDLE_OSC:
             angles.append(amp * math.sin(2.0 * math.pi * freq * t + phase))
         return angles
 
     def _sample_point(self):
-        """Compute a POINT line and queue it."""
         angles = self._current_angles()
         tx, ty, tz = _sim_fk(*angles)
-        line = "POINT,{},{:.4f},{:.4f},{:.4f}".format(
-            self._point_index, tx, ty, tz
-        )
+        line = "POINT,{},{:.4f},{:.4f},{:.4f}".format(self._point_index, tx, ty, tz)
         self._point_index += 1
         with self._lock:
             self._queue.append(line)
 
     def _toggle_trace(self):
-        """Toggle trace recording on/off."""
         self._tracing = not self._tracing
         if self._tracing:
             self._trace_index = 0
@@ -210,10 +337,8 @@ class SimulatorConnection(ArmConnection):
                 self._queue.append("# TRACE STOP")
 
     def _project(self, x, y, z):
-        """Project XYZ onto the current trace plane → (a, b)."""
         if self._trace_plane == "XY":
             return x, y
         elif self._trace_plane == "XZ":
             return x, z
-        else:  # YZ
-            return y, z
+        return y, z

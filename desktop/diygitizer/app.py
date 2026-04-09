@@ -28,6 +28,7 @@ from diygitizer.widgets.connection_bar import ConnectionBar
 from diygitizer.widgets.live_readout import LiveReadout
 from diygitizer.widgets.settings_panel import SettingsPanel
 from diygitizer.widgets.status_bar import StatusBar
+from diygitizer.widgets.simulator_panel import SimulatorPanel
 
 from diygitizer.modes.cmm.cmm_widget import CMMWidget
 from diygitizer.modes.digitizer.digitizer_widget import DigitizerWidget
@@ -128,6 +129,10 @@ class MainWindow(QMainWindow):
         self._readout = LiveReadout()
         layout.addWidget(self._readout)
 
+        # Simulator control panel (hidden until simulator connects)
+        self._sim_panel = SimulatorPanel()
+        layout.addWidget(self._sim_panel)
+
         # Tab widget for modes
         self._tabs = QTabWidget()
         self._cmm_widget = CMMWidget(self._store)
@@ -172,6 +177,10 @@ class MainWindow(QMainWindow):
 
         # Status bar -> settings
         self._status_bar.settings_requested.connect(self._open_settings)
+
+        # Simulator panel -> simulator connection
+        self._sim_panel.mode_changed.connect(self._on_sim_mode_changed)
+        self._sim_panel.joint_changed.connect(self._on_sim_joint_changed)
 
     # ------------------------------------------------------------------
     # Keyboard shortcuts
@@ -241,6 +250,17 @@ class MainWindow(QMainWindow):
         self._conn_bar.set_connected(connected)
         self._readout.set_connected(connected)
         self._status_bar.set_connected(connected, simulator=self._is_simulator)
+        self._sim_panel.setVisible(connected and self._is_simulator)
+
+    def _on_sim_mode_changed(self, mode: str):
+        """Forward simulator mode change to the connection."""
+        if isinstance(self._connection, SimulatorConnection):
+            self._connection.set_mode(mode)
+
+    def _on_sim_joint_changed(self, joint_index: int, angle_deg: float):
+        """Forward manual joint slider change to the simulator."""
+        if isinstance(self._connection, SimulatorConnection):
+            self._connection.set_manual_joint(joint_index, angle_deg)
 
     def _on_reader_error(self, msg: str):
         """Handle errors from the reader thread."""
