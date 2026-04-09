@@ -14,7 +14,7 @@ For roughly the same reasons I did. I got tired of eyeballing dimensions on thin
 
 **Modes of Operation**
 
-- **CMM Mode** — Like any coordinate measurement machine, this mode captures individual points, measure the distances between them, and exports them for review. It's not nearly as accurate as a $35,000 stand-alone device might be, but it's also orders of magnitude cheaper, so there's that.
+- **CMM Mode** — Like any coordinate measurement machine, this mode captures individual points, measures the distances between them, and exports them for review. It's not nearly as accurate as a $35,000 stand-alone device might be, but it's also orders of magnitude cheaper, so there's that.
 - **3D Digitizer Mode** — Run the probe over a surface to scan it continuously, building a point cloud, mesh, or parametric model. Then, export to Fusion (or whatever you're using) as a PLY, STL, or STEP file.
 - **2D Trace Mode** — Trace an object's outline, auto-detecting lines, arcs, and circles, and export their dimensions as a DXF or SVG drawing.
   
