@@ -74,6 +74,14 @@ class CalibrationWizard(QWidget):
         tip.setStyleSheet("color: #aaa;")
         layout.addWidget(tip)
 
+        # Create widgets referenced by tab builders before building tabs
+        self._summary_label = QLabel("Captures: 0 total")
+        self._summary_label.setFont(QFont("", 10))
+        self._run_btn = QPushButton("Run Calibration")
+        self._run_btn.setMinimumHeight(36)
+        self._run_btn.clicked.connect(self._run_calibration)
+        self._run_btn.setEnabled(False)
+
         # Mode tabs
         self._tabs = QTabWidget()
         self._block_tab = self._build_block_tab()
@@ -85,10 +93,6 @@ class CalibrationWizard(QWidget):
         layout.addWidget(self._tabs)
 
         layout.addWidget(self._separator())
-
-        # Capture summary
-        self._summary_label = QLabel("Captures: 0 total")
-        self._summary_label.setFont(QFont("", 10))
         layout.addWidget(self._summary_label)
 
         # Results
@@ -116,11 +120,6 @@ class CalibrationWizard(QWidget):
 
         # Bottom buttons
         bl = QHBoxLayout()
-
-        self._run_btn = QPushButton("Run Calibration")
-        self._run_btn.setMinimumHeight(36)
-        self._run_btn.clicked.connect(self._run_calibration)
-        self._run_btn.setEnabled(False)
         bl.addWidget(self._run_btn)
 
         self._save_btn = QPushButton("Save")
