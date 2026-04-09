@@ -48,7 +48,11 @@ class CalibrationWizard(QWidget):
     def __init__(self, data_store, parent=None):
         super().__init__(parent)
         self.data_store = data_store
-        self._all_captures = []       # combined across all modes
+        self._all_captures = []
+        self._repeat_captures = []
+        self._surface_captures = []
+        self._block_face_idx = 0
+        self._block_face_points = {f: [] for f in FACE_ORDER}
         self.calibration_result = None
         self._setup_ui()
 
@@ -148,10 +152,6 @@ class CalibrationWizard(QWidget):
         )
         desc.setWordWrap(True)
         layout.addWidget(desc)
-
-        # Face selector
-        self._block_face_idx = 0
-        self._block_face_points = {f: [] for f in FACE_ORDER}
 
         self._face_label = QLabel()
         self._face_label.setFont(QFont("", 11, QFont.Bold))
@@ -259,8 +259,6 @@ class CalibrationWizard(QWidget):
         desc.setWordWrap(True)
         layout.addWidget(desc)
 
-        self._repeat_captures = []
-
         self._repeat_count_label = QLabel("Captures: 0")
         self._repeat_count_label.setFont(QFont("", 11, QFont.Bold))
         layout.addWidget(self._repeat_count_label)
@@ -350,8 +348,6 @@ class CalibrationWizard(QWidget):
         )
         desc.setWordWrap(True)
         layout.addWidget(desc)
-
-        self._surface_captures = []
 
         self._surface_count_label = QLabel("Captures: 0")
         self._surface_count_label.setFont(QFont("", 11, QFont.Bold))
