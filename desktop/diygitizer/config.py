@@ -7,7 +7,7 @@ BASE_HEIGHT = 38.0
 UPPER_ARM = 330.1
 FOREARM = 330.1
 WRIST_LINK = 36.0
-PROBE_LEN = 77.3
+PROBE_LEN = 77.4
 BALL_RADIUS = 0.5
 
 # ---------------------------------------------------------------------------

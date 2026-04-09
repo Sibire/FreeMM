@@ -27,7 +27,7 @@
 #define UPPER_ARM     330.1f
 #define FOREARM       330.1f
 #define WRIST_LINK     36.0f
-#define PROBE_LEN      77.3f
+#define PROBE_LEN      77.4f
 #define BALL_RADIUS     0.5f
 
 // --- Joint Count ---
