@@ -106,6 +106,12 @@ class Viewport3D(QOpenGLWidget):
         if not HAS_OPENGL:
             return
 
+        # QPainter owns the widget surface.  OpenGL calls go between
+        # beginNativePainting / endNativePainting; 2D text overlay
+        # uses the painter directly afterward.
+        painter = QPainter(self)
+        painter.beginNativePainting()
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
         self._setup_projection()
@@ -126,8 +132,11 @@ class Viewport3D(QOpenGLWidget):
         if self.show_features and self._features:
             self._draw_features()
 
-        # Draw dimension labels as 2D overlay
-        self._draw_labels()
+        painter.endNativePainting()
+
+        # 2D text overlay (labels) drawn with QPainter after OpenGL
+        self._draw_labels_with_painter(painter)
+        painter.end()
 
     def _setup_projection(self):
         glMatrixMode(GL_PROJECTION)
@@ -392,12 +401,11 @@ class Viewport3D(QOpenGLWidget):
 
         glLineWidth(1)
 
-    def _draw_labels(self):
-        """Draw dimension labels as 2D text overlay using QPainter."""
+    def _draw_labels_with_painter(self, painter):
+        """Draw dimension labels as 2D text overlay using an active QPainter."""
         if not self._features:
             return
 
-        painter = QPainter(self)
         painter.setRenderHint(QPainter.TextAntialiasing)
         painter.setFont(QFont("", 9))
         painter.setPen(QColor(255, 200, 50))
@@ -425,8 +433,6 @@ class Viewport3D(QOpenGLWidget):
                 if screen:
                     painter.drawText(QPointF(screen[0] + 10, screen[1] - 10),
                                      label)
-
-        painter.end()
 
     def _project_to_screen(self, x, y, z):
         """Project 3D world point to 2D screen coordinates."""
