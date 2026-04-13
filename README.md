@@ -46,7 +46,6 @@ Base Plate (clamped to desk)
 | I2C Mux | TCA9548A (resolves shared AS5600 address) |
 | Display | 0.96" SSD1306 OLED I2C (Note: Make sure yours is square) |
 | Buttons | Sample (GPIO 26), Mode (GPIO 27), Foot Pedal Sample (GPIO 25) |
-| Probe | Suxing M2 ruby stylus (1mm ball, 20mm shaft), or similarly dimensioned probe |
 
 ### Bill of Hardware
 
