@@ -41,10 +41,10 @@ Base Plate (clamped to desk)
 
 | Component | Details |
 |-----------|---------|
-| 1x MCU | ESP32 DevKit V1 (38-pin) |
-| 5x Encoders | AS5600 (12-bit magnetic, I2C) |
-| 1x I2C Mux | TCA9548A (resolves shared AS5600 address) |
-| 1x Display | 0.96" SSD1306 OLED I2C (Note: Make sure yours is square) |
+| 1x MCU | ESP32 (38-pin) |
+| 5x Encoders | AS5600 (12-bit magnetic, I2C. 23x23mm with M3 holes 16mm apart) |
+| 1x I2C Mux | TCA9548A Breakout Board(resolves shared AS5600 address) |
+| 1x Display | 0.96" SSD1306 OLED I2C (Make sure yours is square, 28x28mm) |
 | 3x Buttons | Sample (GPIO 26), Mode (GPIO 27), Foot Pedal Sample (GPIO 25) |
 
 ### Bill of Hardware
@@ -89,6 +89,8 @@ PREFERRED:
 | 1x Calibration Stop | Slots into base to lock turret alignment for calibration |
 
 All printed parts are PETG (40% infill, 4 walls) with the exception of the Base (10%) and the Base Clamp (15%). You can find an existing set of slices (albeit for an Ender 5 Pro with a MicroSwiss all-metal-hotend and direct drive setup on TH3D firmware) within the repo. Total cost of $Free.99 to $200, depending on what you have on hand.
+
+If your Mux board doesn't fit the base lid's screw posts, use the bare lid and some tape.
 
 ## Software
 
