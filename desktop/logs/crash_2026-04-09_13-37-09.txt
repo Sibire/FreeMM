@@ -1,0 +1,33 @@
+DIYgitizer crash — 2026-04-09_13-37-09
+Python 3.14.3 (tags/v3.14.3:323c59a, Feb  3 2026, 16:04:56) [MSC v.1944 64 bit (AMD64)]
+Platform: win32
+============================================================
+
+Traceback (most recent call last):
+  File "C:\Users\ARDENT\Documents\GitHub\DIYgitizer\desktop\run.py", line 128, in <module>
+    main()
+    ~~~~^^
+  File "C:\Users\ARDENT\Documents\GitHub\DIYgitizer\desktop\run.py", line 118, in main
+    window = MainWindow()
+  File "C:\Users\ARDENT\Documents\GitHub\DIYgitizer\desktop\diygitizer\app.py", line 109, in __init__
+    self._build_ui()
+    ~~~~~~~~~~~~~~^^
+  File "C:\Users\ARDENT\Documents\GitHub\DIYgitizer\desktop\diygitizer\app.py", line 141, in _build_ui
+    self._calibration_widget = CalibrationWizard(self._store)
+                               ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^
+  File "C:\Users\ARDENT\Documents\GitHub\DIYgitizer\desktop\diygitizer\calibration\calibration_wizard.py", line 57, in __init__
+    self._setup_ui()
+    ~~~~~~~~~~~~~~^^
+  File "C:\Users\ARDENT\Documents\GitHub\DIYgitizer\desktop\diygitizer\calibration\calibration_wizard.py", line 79, in _setup_ui
+    self._block_tab = self._build_block_tab()
+                      ~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\ARDENT\Documents\GitHub\DIYgitizer\desktop\diygitizer\calibration\calibration_wizard.py", line 194, in _build_block_tab
+    self._update_block_display()
+    ~~~~~~~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\ARDENT\Documents\GitHub\DIYgitizer\desktop\diygitizer\calibration\calibration_wizard.py", line 217, in _update_block_display
+    self._update_summary()
+    ~~~~~~~~~~~~~~~~~~~~^^
+  File "C:\Users\ARDENT\Documents\GitHub\DIYgitizer\desktop\diygitizer\calibration\calibration_wizard.py", line 441, in _update_summary
+    self._summary_label.setText(f"Captures: {total} total ({detail})")
+    ^^^^^^^^^^^^^^^^^^^
+AttributeError: 'CalibrationWizard' object has no attribute '_summary_label'
