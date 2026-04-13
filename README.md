@@ -48,9 +48,27 @@ Base Plate (clamped to desk)
 | Buttons | Sample (GPIO 26), Mode (GPIO 27), Foot Pedal Sample (GPIO 25) |
 | Probe | Suxing M2 ruby stylus (1mm ball, 20mm shaft), or similarly dimensioned probe |
 
-### Bill of Materials
+### Bill of Hardware
 
-All printed parts are PETG (50% infill, 4 walls) with the exception of the Base (15%) and the Base Clamp (25%). You can find an existing set of slices (albeit for an Ender 5 Pro with a MicroSwiss all-metal-hotend and direct drive setup on TH3D firmware) within the repo. Total cost of $Free.99 to $200, depending on what you have on hand.
+REQUIRED:
+| Component | Details |
+| 4x M2x6mm Screws | OLED mount |
+| 22x M3x6mm Screws | 4x5 Encoder mount, 2x Mux mount |
+| 6x M5x12mm Screws | 4x Base clamp. 2x Foot pedal |
+| 1x 2mm Thread insert | Probe swivel (4mm Preferred) |
+| 1x M2 1mm Probe Tip | Adjust J5 length to center of probe tip |
+| Two-wire shielded cable | Still working out exact length |
+| 22 AWG wire | See above |
+| Double-sided tape | Keep the MCU in place) |
+| A whole lot of zipties and heat shrink | Tidying things up |
+
+PREFERRED:
+| Component | Details |
+| 4x M5 Thread inserts | Base clamp, part is 3.75mm thick, so smaller the better, but it's not terribly critical |
+| 2x M10 Thread inserts | Base clamp, in case print tolerances are off for the table clamping bolts |
+| 2x M10x75mm Bolts | Base clamp, see above |
+
+All printed parts are PETG (40% infill, 4 walls) with the exception of the Base (10%) and the Base Clamp (15%). You can find an existing set of slices (albeit for an Ender 5 Pro with a MicroSwiss all-metal-hotend and direct drive setup on TH3D firmware) within the repo. Total cost of $Free.99 to $200, depending on what you have on hand.
 
 ## Software
 
