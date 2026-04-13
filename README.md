@@ -62,6 +62,7 @@ REQUIRED:
 | 22 AWG wire | See above |
 | Double-sided tape | Keep the MCU in place) |
 | A whole lot of zipties and heat shrink | Tidying things up |
+| Hot Glue | Gluing the buttons in place, literally whatever else it might be used for |
 
 PREFERRED:
 | Component | Details |
