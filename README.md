@@ -52,6 +52,7 @@ Base Plate (clamped to desk)
 
 REQUIRED:
 | Component | Details |
+|-----------|---------|
 | 4x M2x6mm Screws | OLED mount |
 | 22x M3x6mm Screws | 4x5 Encoder mount, 2x Mux mount |
 | 6x M5x12mm Screws | 4x Base clamp. 2x Foot pedal |
@@ -64,6 +65,7 @@ REQUIRED:
 
 PREFERRED:
 | Component | Details |
+|-----------|---------|
 | 4x M5 Thread inserts | Base clamp, part is 3.75mm thick, so smaller the better, but it's not terribly critical |
 | 2x M10 Thread inserts | Base clamp, in case print tolerances are off for the table clamping bolts |
 | 2x M10x75mm Bolts | Base clamp, see above |
