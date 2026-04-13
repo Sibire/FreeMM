@@ -41,17 +41,18 @@ Base Plate (clamped to desk)
 
 | Component | Details |
 |-----------|---------|
-| MCU | ESP32 DevKit V1 (38-pin) |
-| Encoders | 5× AS5600 (12-bit magnetic, I2C) |
-| I2C Mux | TCA9548A (resolves shared AS5600 address) |
-| Display | 0.96" SSD1306 OLED I2C (Note: Make sure yours is square) |
-| Buttons | Sample (GPIO 26), Mode (GPIO 27), Foot Pedal Sample (GPIO 25) |
+| 1x MCU | ESP32 DevKit V1 (38-pin) |
+| 5x Encoders | AS5600 (12-bit magnetic, I2C) |
+| 1x I2C Mux | TCA9548A (resolves shared AS5600 address) |
+| 1x Display | 0.96" SSD1306 OLED I2C (Note: Make sure yours is square) |
+| 3x Buttons | Sample (GPIO 26), Mode (GPIO 27), Foot Pedal Sample (GPIO 25) |
 
 ### Bill of Hardware
 
 REQUIRED:
 | Component | Details |
 |-----------|---------|
+| 2x 8mm OD x 300mm Aluminum tubing | Arm structure |
 | 4x M2x6mm Screws | OLED mount |
 | 22x M3x6mm Screws | 4x5 Encoder mount, 2x Mux mount |
 | 6x M5x12mm Screws | 4x Base clamp. 2x Foot pedal |
@@ -68,6 +69,24 @@ PREFERRED:
 | 4x M5 Thread inserts | Base clamp, part is 3.75mm thick, so smaller the better, but it's not terribly critical |
 | 2x M10 Thread inserts | Base clamp, in case print tolerances are off for the table clamping bolts |
 | 2x M10x75mm Bolts | Base clamp, see above |
+
+### Print List
+
+| Component | Details |
+|-----------|---------|
+| 1x Base | Holds it all together |
+| 1x Base Clamp | Fits into base for desk mounting |
+| 2x Base Clamp Screw | Secures base clamp to desk |
+| 2x Sensor Swivel | Contains a magnet to interface with one encoder, and the mount for another |
+| 2x Sensor Elbow | Contains a mount for an encoder, a slot for 8mm tubing, and sights for alignment with sensorless swivel |
+| 2x Sensorless Swivel | Contains a magnet to interface with an encoder, a slot for 8mm tubing, and signts for alignment with elbow |
+| 1x Probe Swivel | Holds sample button and probe tip |
+| 5x Encoder Lid | Covers encoder compartments |
+| 1x Display Lid | Covers OLED circuitry |
+| 1x Base Lid | Covers MCU/Mux compartment |
+| 1x Foot Pedal Base | It's a pedal base |
+| 1x Foot Pedal Top | It's a pedal top |
+| 1x Calibration Stop | Slots into base to lock turret alignment for calibration |
 
 All printed parts are PETG (40% infill, 4 walls) with the exception of the Base (10%) and the Base Clamp (15%). You can find an existing set of slices (albeit for an Ender 5 Pro with a MicroSwiss all-metal-hotend and direct drive setup on TH3D firmware) within the repo. Total cost of $Free.99 to $200, depending on what you have on hand.
 
